@@ -1,0 +1,44 @@
+{
+  "required": true,
+  "package": "restudio.reglass.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "widgets.SliderWidgetMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "client": [
+    "accessor.DrawContextAccessor",
+    "accessor.BeaconScreenButtonAccessor",
+    "accessor.GameRendererAccessor",
+    "accessor.OptionsAccessor",
+    "accessor.ScissorStackAccessor",
+    "accessor.ShulkerBoxMenuAccessor",
+    "accessor.SlotAccessor",
+    "accessor.SliderWidgetAccessor",
+    "client.AbstractContainerScreenMixin",
+    "client.AnvilScreenMixin",
+    "client.BeaconPowerButtonMixin",
+    "client.BeaconScreenMixin",
+    "client.BrewingStandScreenMixin",
+    "client.CreativeModeInventoryScreenMixin",
+    "client.EnchantmentScreenMixin",
+    "client.InGameHudMixin",
+    "client.InventoryScreenMixin",
+    "client.LoomScreenMixin",
+    "client.MerchantScreenMixin",
+    "client.RecipeBookComponentMixin",
+    "client.RecipeBookTabButtonMixin",
+    "client.ScreenMixin",
+    "client.ShulkerBoxBlockMixin",
+    "client.StonecutterScreenMixin",
+    "client.TitleScreenMixin",
+    "logical.GameRendererMixin",
+    "widgets.DrawContextMixin",
+    "widgets.GuiRendererMixin"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "reglass",
+  "version": "${version}",
+  "name": "ReGlass",
+  "description": "Liquid Glass Implemented On Your Favorite Pixelated And Cubic Game.",
+  "authors": [
+    "RedxAx"
+  ],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "restudio.reglass.client.ReGlassClient"
+    ],
+    "main": [
+      "restudio.reglass.ReGlass"
+    ],
+    "modmenu": [
+      "restudio.reglass.client.compat.ReGlassModMenuApi"
+    ]
+  },
+    "mixins": [
+      "reglass.mixins.json"
+    ],
+  "depends": {
+    "fabricloader": "${loader_dependency}",
+    "minecraft": "${minecraft_dependency}",
+    "java": "${java_dependency}",
+    "fabric-api": "${fabric_api_dependency}"
+  },
+  "suggests": {
+    "modmenu": "*"
+  }
+}

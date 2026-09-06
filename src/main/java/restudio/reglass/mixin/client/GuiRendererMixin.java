@@ -1,0 +1,32 @@
+package restudio.reglass.mixin.client;
+
+import com.google.common.collect.ImmutableMap;
+import net.minecraft.client.gui.render.GuiRenderer;
+import net.minecraft.client.gui.render.SpecialGuiElementRenderer;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
+import net.minecraft.client.renderer.MultiBufferSource;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import restudio.reglass.client.gui.LiquidGlassGuiElementRenderer;
+import restudio.reglass.mixin.accessor.GuiRendererAccessor;
+
+@Mixin(GuiRenderer.class)
+public class GuiRendererMixin {
+
+    @Redirect(
+            method = "<init>",
+            at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableMap$Builder;buildOrThrow()Lcom/google/common/collect/ImmutableMap;")
+    )
+    private ImmutableMap<Class<? extends GuiElementRenderState>, SpecialGuiElementRenderer<?>> addCustomRenderer(
+            ImmutableMap.Builder<Class<? extends GuiElementRenderState>, SpecialGuiElementRenderer<?>> builder
+    ) {
+        GuiRenderer thisGuiRenderer = (GuiRenderer)(Object)this;
+        MultiBufferSource.BufferSource vertexConsumers = ((GuiRendererAccessor) thisGuiRenderer).getVertexConsumers();
+
+        LiquidGlassGuiElementRenderer liquidGlassRenderer = new LiquidGlassGuiElementRenderer(vertexConsumers);
+        builder.put(liquidGlassRenderer.getElementClass(), liquidGlassRenderer);
+
+        return builder.buildOrThrow();
+    }
+}

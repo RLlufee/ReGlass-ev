@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version "${loom_version}"
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 }
 
@@ -11,39 +11,63 @@ base {
 }
 
 repositories {
-
-
+	maven {
+		name = 'TerraformersMC'
+		url = 'https://maven.terraformersmc.com/releases/'
+	}
 }
 
 dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+}
 
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	
+sourceSets {
+	main {
+		java {
+			exclude "restudio/reglass/client/screen/world/**"
+			exclude "restudio/reglass/client/screen/widget/world/**"
+			exclude "restudio/reglass/client/gui/LiquidGlassGuiElementRenderer.java"
+			exclude "restudio/reglass/mixin/accessor/GuiRendererAccessor.java"
+			exclude "restudio/reglass/mixin/accessor/TextIconButtonWidgetAccessor.java"
+			exclude "restudio/reglass/mixin/client/GuiRendererMixin.java"
+			exclude "restudio/reglass/mixin/client/MinecraftClientMixin.java"
+			exclude "restudio/reglass/mixin/widgets/TooltipStateMixin.java"
+		}
+	}
 }
 
 processResources {
-	inputs.property "version", project.version
+	def properties = [
+			version: project.version,
+			loader_dependency: project.loader_dependency,
+			minecraft_dependency: project.minecraft_dependency,
+			java_dependency: project.java_dependency,
+			fabric_api_dependency: project.fabric_api_dependency
+	]
+
+	inputs.properties properties
 
 	filesMatching("fabric.mod.json") {
-		expand "version": inputs.properties.version
+		expand properties
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = project.java_version.toInteger()
 }
 
 java {
+	withSourcesJar()
 
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(project.java_version.toInteger())
+	}
 
-    withSourcesJar()
-
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.toVersion(project.java_version)
+	targetCompatibility = JavaVersion.toVersion(project.java_version)
 }
 
 jar {
@@ -54,7 +78,6 @@ jar {
 	}
 }
 
-
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
@@ -62,10 +85,4 @@ publishing {
 			from components.java
 		}
 	}
-
-
-    repositories {
-
-
-    }
 }
