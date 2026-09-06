@@ -1,4 +1,4 @@
-## 本fork修改：
+## 本fork修改：（仅修改26.2）
 - **Tooltip 悬浮提示框毛玻璃化（26.2 支持）**：
   - 在 `ReGlassConfig.Features` 及 `ReGlassSettingsIO` 中新增 `tooltips` 开关支持，并在配置界面增加对应切换按钮。
   - 在 `DrawContextMixin` 中拦截并替换原版 `tooltip/background` 与 `tooltip/frame` 精灵图，将原版矩形紫边提示框重构为具有抗锯齿圆角、深色微透与菲涅尔高光的流体毛玻璃面板（Layer 14）。
