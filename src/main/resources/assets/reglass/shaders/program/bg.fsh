@@ -1,4 +1,5 @@
-#version 150
+#version 330
+#extension GL_ARB_separate_shader_objects : require
 
 uniform sampler2D Sampler0;
 
@@ -26,7 +27,7 @@ layout(std140) uniform WidgetInfo {
     vec4 ScissorRects[MAX_WIDGETS];
 };
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 #define PI 3.141592653589793
 

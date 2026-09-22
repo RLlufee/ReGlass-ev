@@ -1,6 +1,6 @@
 package restudio.reglass.mixin.widgets;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -37,7 +37,7 @@ public abstract class DrawContextMixin {
         LiquidGlassUniforms.get().setScreenWantsBlur(true);
     }
 
-    @Inject(method = "blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIIII)V",
+    @Inject(method = "blitSprite(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIIII)V",
             at = @At("HEAD"), cancellable = true)
     private void onDrawTexture(RenderPipeline pipeline, Identifier sprite, int x, int y, int width, int height, int color, CallbackInfo ci) {
         if (reglass$handleContainerSprite(sprite, x, y, width, height)) {
@@ -69,7 +69,7 @@ public abstract class DrawContextMixin {
         }
     }
 
-    @Inject(method = "blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V",
+    @Inject(method = "blitSprite(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V",
             at = @At("HEAD"), cancellable = true)
     private void reglass$onDrawSprite(RenderPipeline pipeline, Identifier sprite, int x, int y, int width, int height, CallbackInfo ci) {
         if (reglass$handleContainerSprite(sprite, x, y, width, height)) {
@@ -82,7 +82,7 @@ public abstract class DrawContextMixin {
         }
     }
 
-    @Inject(method = "blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIIIIIII)V",
+    @Inject(method = "blitSprite(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIIIIIII)V",
             at = @At("HEAD"), cancellable = true)
     private void reglass$onDrawSlicedSprite(RenderPipeline pipeline, Identifier sprite, int spriteWidth, int spriteHeight, int u, int v, int x, int y, int width, int height, CallbackInfo ci) {
         ReGlassConfig cfg = ReGlassConfig.INSTANCE;
@@ -96,7 +96,7 @@ public abstract class DrawContextMixin {
         }
     }
 
-    @Inject(method = "blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIIII)V",
+    @Inject(method = "blit(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIIII)V",
             at = @At("HEAD"), cancellable = true)
     private void reglass$onBlitTexture(RenderPipeline pipeline, Identifier texture, int x, int y, float u, float v, int width, int height, int sourceWidth, int sourceHeight, int textureWidth, CallbackInfo ci) {
         if (reglass$shouldSkipContainerTexture(texture, width, height)) {
@@ -104,7 +104,7 @@ public abstract class DrawContextMixin {
         }
     }
 
-    @Inject(method = "blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V",
+    @Inject(method = "blit(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V",
             at = @At("HEAD"), cancellable = true)
     private void reglass$onBlitTextureNoSourceSize(RenderPipeline pipeline, Identifier texture, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight, CallbackInfo ci) {
         if (reglass$handleModMenuButtonTexture(texture, x, y, u, v, width, height, textureWidth, textureHeight)) {
@@ -116,7 +116,7 @@ public abstract class DrawContextMixin {
         }
     }
 
-    @Inject(method = "blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIIIII)V",
+    @Inject(method = "blit(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIIIII)V",
             at = @At("HEAD"), cancellable = true)
     private void reglass$onBlitTextureFull(RenderPipeline pipeline, Identifier texture, int x, int y, float u, float v, int width, int height, int sourceWidth, int sourceHeight, int textureWidth, int textureHeight, CallbackInfo ci) {
         if (reglass$handleModMenuButtonTexture(texture, x, y, u, v, width, height, textureWidth, textureHeight)) {
@@ -128,7 +128,7 @@ public abstract class DrawContextMixin {
         }
     }
 
-    @Inject(method = "blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIIIIII)V",
+    @Inject(method = "blit(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIIIIII)V",
             at = @At("HEAD"), cancellable = true)
     private void reglass$onBlitTextureFullWithColor(RenderPipeline pipeline, Identifier texture, int x, int y, float u, float v, int width, int height, int sourceWidth, int sourceHeight, int textureWidth, int textureHeight, int color, CallbackInfo ci) {
         if (reglass$handleModMenuButtonTexture(texture, x, y, u, v, width, height, textureWidth, textureHeight)) {

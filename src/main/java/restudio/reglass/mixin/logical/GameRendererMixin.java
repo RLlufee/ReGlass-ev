@@ -1,20 +1,20 @@
 package restudio.reglass.mixin.logical;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.FilterMode;
-import com.mojang.blaze3d.PrimitiveTopology;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.commands.CommandEncoder;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.textures.FilterMode;
 import java.util.List;
-import java.util.OptionalDouble;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.DeltaTracker;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -34,7 +34,7 @@ public abstract class GameRendererMixin {
     @Shadow @Final private Minecraft minecraft;
 
     @Inject(method = "extract", at = @At("HEAD"))
-    private void reglass$beginGuiFrame(DeltaTracker tickCounter, boolean tick, CallbackInfo ci) {
+    private void reglass(DeltaTracker tickCounter, boolean tick, CallbackInfo ci) {
         double deltaTicks;
         try {
             deltaTicks = tickCounter.getRealtimeDeltaTicks();
@@ -47,7 +47,7 @@ public abstract class GameRendererMixin {
     }
 
     @Inject(method = "processBlurEffect", at = @At("HEAD"), cancellable = true)
-    private void reglass$renderLiquidGlass(CallbackInfo ci) {
+    private void reglass(CallbackInfo ci) {
         LiquidGlassUniforms uniforms = LiquidGlassUniforms.get();
         if (uniforms.getCount() > 0) {
             ci.cancel();
@@ -57,26 +57,27 @@ public abstract class GameRendererMixin {
             LiquidGlassPrecomputeRuntime.get().setRequestedRadii(radii);
             LiquidGlassPrecomputeRuntime.get().run();
             RenderTarget mainFb = this.minecraft.gameRenderer.mainRenderTarget();
-            try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+            CommandEncoder ce = RenderSystem.getDevice().createCommandEncoder();
+            try (RenderPass pass = ce.createRenderPass(
                     () -> "reglass liquid glass pass",
                     mainFb.getColorTextureView(),
                     Optional.empty(),
-                    mainFb.useDepth ? mainFb.getDepthTextureView() : null,
+                    mainFb.hasDepth() ? mainFb.getDepthTextureView() : null,
                     OptionalDouble.empty()
             )) {
                 RenderPipeline pipeline = LiquidGlassPipelines.getGuiPipeline();
-                pass.setPipeline(pipeline);
+                pass.setPipeline(RenderSystem.getCompiledPipeline(pipeline));
 
                 pass.setUniform("SamplerInfo", uniforms.getSamplerInfoBuffer());
                 pass.setUniform("CustomUniforms", uniforms.getCustomUniformsBuffer());
                 pass.setUniform("WidgetInfo", uniforms.getWidgetInfoBuffer());
                 pass.setUniform("BgConfig", uniforms.getBgConfigBuffer());
-                pass.bindTexture("Sampler0", mainFb.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+                pass.setUniform("Sampler0", mainFb.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
 
                 GuiRenderer guiRenderer = ((GameRendererAccessor) this).getGuiRenderer();
                 GpuBuffer quadVB = ((QuadVertexBufferProvider) guiRenderer).getQuadVertexBuffer();
                 RenderSystem.AutoStorageIndexBuffer quadIBInfo = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
-                com.mojang.blaze3d.buffers.GpuBuffer quadIB = quadIBInfo.getBuffer(6);
+                GpuBuffer quadIB = quadIBInfo.getBuffer(6);
                 pass.setVertexBuffer(0, quadVB.slice());
                 pass.setIndexBuffer(quadIB, quadIBInfo.type());
                 for (int i = 0; i < 5; i++) {
@@ -89,18 +90,19 @@ public abstract class GameRendererMixin {
                     };
                     if (i < radii.size()) {
                         int r = radii.get(i);
-                        if (r <= 0) pass.bindTexture(samplerName, mainFb.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
-                        else pass.bindTexture(samplerName, LiquidGlassPrecomputeRuntime.get().getBlurredViewForRadius(r), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+                        if (r <= 0) pass.setUniform(samplerName, mainFb.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+                        else pass.setUniform(samplerName, LiquidGlassPrecomputeRuntime.get().getBlurredViewForRadius(r), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
                     } else {
                         if (!radii.isEmpty()) {
                             int r0 = radii.getFirst();
-                            if (r0 <= 0) pass.bindTexture(samplerName, mainFb.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
-                            else pass.bindTexture(samplerName, LiquidGlassPrecomputeRuntime.get().getBlurredViewForRadius(r0), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
-                        } else pass.bindTexture(samplerName, mainFb.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+                            if (r0 <= 0) pass.setUniform(samplerName, mainFb.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+                            else pass.setUniform(samplerName, LiquidGlassPrecomputeRuntime.get().getBlurredViewForRadius(r0), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+                        } else pass.setUniform(samplerName, mainFb.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
                     }
                 }
                 pass.drawIndexed(6, 1, 0, 0, 0);
             }
+            ce.submit();
         }
     }
 }

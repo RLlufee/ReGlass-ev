@@ -1,27 +1,26 @@
 package restudio.reglass.client;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.Std140Builder;
-import com.mojang.blaze3d.GpuFormat;
-import com.mojang.blaze3d.PrimitiveTopology;
-import com.mojang.blaze3d.pipeline.BindGroupLayout;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.FilterMode;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.textures.GpuTextureView;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.commands.CommandEncoder;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
+import com.mojang.renderpearl.api.pipeline.ColorTargetState;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.UniformType;
+import com.mojang.renderpearl.api.textures.FilterMode;
+import com.mojang.renderpearl.api.textures.GpuTexture;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.client.Minecraft;
-import com.mojang.blaze3d.shaders.UniformType;
 import net.minecraft.client.gui.render.GuiRenderer;
-import net.minecraft.client.renderer.GameRenderer;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.resources.Identifier;
 import restudio.reglass.client.api.ReGlassConfig;
 import restudio.reglass.client.gui.QuadVertexBufferProvider;
@@ -66,14 +65,13 @@ public final class LiquidGlassPrecomputeRuntime {
                             BindGroupLayout.builder()
                                     .withUniform("SamplerInfo", UniformType.UNIFORM_BUFFER)
                                     .withUniform("Config", UniformType.UNIFORM_BUFFER)
-                                    .withSampler("DiffuseSampler")
+                                    .withUniform("DiffuseSampler", UniformType.COMBINED_IMAGE_SAMPLER)
                                     .build()
                     )
                     .withVertexBinding(0, DefaultVertexFormat.POSITION)
                     .withPrimitiveTopology(PrimitiveTopology.QUADS)
                     .withColorTargetState(ColorTargetState.DEFAULT)
                     .build();
-            RenderSystem.getDevice().precompilePipeline(blurPipeline);
         }
 
         if (samplerInfoUbo == null) {
@@ -118,15 +116,23 @@ public final class LiquidGlassPrecomputeRuntime {
     private static float[] gaussian(int radius) {
         radius = Math.max(0, Math.min(radius, MAX_RADIUS));
         float sigma = radius / 3.0f;
-        if (radius == 0) return new float[] {1f};
-        float[] kernel = new float[radius + 1];
-        float sum = 0f;
-        for (int i = 0; i <= radius; i++) {
-            float w = (float) Math.exp(-0.5 * ((float) i * (float) i) / (sigma * sigma));
-            kernel[i] = w;
-            sum += (i == 0) ? w : (2f * w);
+        if (sigma <= 0.0001f) {
+            float[] kernel = new float[radius + 1];
+            kernel[0] = 1.0f;
+            return kernel;
         }
-        for (int i = 0; i <= radius; i++) kernel[i] /= sum;
+        float[] kernel = new float[radius + 1];
+        float sum = 0.0f;
+        for (int i = 0; i <= radius; i++) {
+            float g = (float) Math.exp(-(i * i) / (2.0f * sigma * sigma));
+            kernel[i] = g;
+            sum += (i == 0) ? g : 2.0f * g;
+        }
+        if (sum > 0.0f) {
+            for (int i = 0; i <= radius; i++) {
+                kernel[i] /= sum;
+            }
+        }
         return kernel;
     }
 
@@ -163,8 +169,8 @@ public final class LiquidGlassPrecomputeRuntime {
         }
 
         var ce = RenderSystem.getDevice().createCommandEncoder();
-        GameRenderer gameRenderer = mc.gameRenderer;
-        GuiRenderer guiRenderer = ((GameRendererAccessor) gameRenderer).getGuiRenderer();
+
+        GuiRenderer guiRenderer = ((GameRendererAccessor) mc.gameRenderer).getGuiRenderer();
         var quadVB = ((QuadVertexBufferProvider) guiRenderer).getQuadVertexBuffer();
         var idxInfo = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
         var ib = idxInfo.getBuffer(6);
@@ -186,25 +192,26 @@ public final class LiquidGlassPrecomputeRuntime {
             uploadBlur(blurConfigUboY, 0f, 1f, radius);
 
             try (RenderPass pass = ce.createRenderPass(() -> "reglass blur X r=" + radius, blurTempView, Optional.empty())) {
-                pass.setPipeline(blurPipeline);
+                pass.setPipeline(RenderSystem.getCompiledPipeline(blurPipeline));
                 pass.setUniform("SamplerInfo", samplerInfoUbo);
                 pass.setUniform("Config", blurConfigUboX);
-                pass.bindTexture("DiffuseSampler", main.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+                pass.setUniform("DiffuseSampler", main.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
                 pass.setVertexBuffer(0, quadVB.slice());
                 pass.setIndexBuffer(ib, it);
                 pass.drawIndexed(6, 1, 0, 0, 0);
             }
 
             try (RenderPass pass = ce.createRenderPass(() -> "reglass blur Y r=" + radius, blurredViewByRadius.get(radius), Optional.empty())) {
-                pass.setPipeline(blurPipeline);
+                pass.setPipeline(RenderSystem.getCompiledPipeline(blurPipeline));
                 pass.setUniform("SamplerInfo", samplerInfoUbo);
                 pass.setUniform("Config", blurConfigUboY);
-                pass.bindTexture("DiffuseSampler", blurTempView, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+                pass.setUniform("DiffuseSampler", blurTempView, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
                 pass.setVertexBuffer(0, quadVB.slice());
                 pass.setIndexBuffer(ib, it);
                 pass.drawIndexed(6, 1, 0, 0, 0);
             }
         }
+        ce.submit();
     }
 
     public GpuTextureView getBlurredViewForRadius(int radius) {

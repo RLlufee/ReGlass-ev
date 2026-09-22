@@ -1,11 +1,33 @@
-## 本fork修改：（仅修改26.2）
+## 本版本（26.3-ev）移植与修改日志：
+- **着色器 SPIR-V 语法规范化修复（解决客户端崩溃）**：
+  - 修复 Minecraft 26.3 RenderPearl 渲染引擎在将 GLSL 编译为 SPIR-V 字节码时的编译报错（'location' : SPIR-V requires location for user input/output）。
+  - 为 lit_fullscreen.vsh、lur.fsh、liquid_glass_gui.fsh、g.fsh、loom.fsh 全部补齐 #version 330、#extension GL_ARB_separate_shader_objects : require 以及 layout(location = 0) 输入/输出变量显式修饰符，确保在 Vulkan/OpenGL 下顺利通过 SPIR-V 语法校验与管线构建。
+- **完整移植至 Minecraft 26.3 (Fabric)**：
+  - **渲染后端 RenderPearl 全新架构适配**：
+    - 适配 Mojang 26.3 全新 com.mojang.renderpearl 抽象层，将所有管线、着色器描述符、缓冲区与渲染通路迁移至 RenderPearl API。
+    - 适配 RenderPipeline, PrimitiveTopology, UniformType, BindGroupLayout, ColorTargetState。
+    - 将 RenderPass 的纹理与缓冲绑定统一迁移为 setUniform，适配 CompiledRenderPipeline 编译调度。
+    - 适配 GpuBuffer、GpuBufferSlice 与 AutoStorageIndexBuffer，解决缓冲区生命周期管理与切片传递。
+    - 适配 RenderTarget.hasDepth() 及纹理视图获取逻辑。
+  - **窗口与平台抽象迁移（SDL 适配）**：
+    - 移除对 GLFW 静态类的直接依赖，鼠标位置改由 Minecraft.mouseHandler 获取，时间基准使用纳秒级时间源，全局按键与鼠标点击判断完全适配 26.3 的 InputConstants.isKeyDown(key)。
+  - **GuiGraphicsExtractor 渲染拦截**：
+    - 将 DrawContextMixin 中的 lit 与 litSprite 拦截切面全量对齐至 26.3 的 com.mojang.renderpearl.api.pipeline.RenderPipeline 描述符。
+  - **继承 26.2-ev 全部扩展特性**：
+    - 完整保留 Tooltip 悬浮提示框毛玻璃化（Layer 14）。
+    - 完整保留 	ooltipOpacity 不透明度调节滑动条与配置持久化。
+    - 完整保留配置界面全汉化与双语支持（zh_cn.json / n_us.json）。
+
+---
+
+## 26.2-ev 原修改日志：
 - **Tooltip 悬浮提示框毛玻璃化（26.2 支持）**：
-  - 在 `ReGlassConfig.Features` 及 `ReGlassSettingsIO` 中新增 `tooltips` 开关支持，并在配置界面增加对应切换按钮。
-  - 在 `DrawContextMixin` 中拦截并替换原版 `tooltip/background` 与 `tooltip/frame` 精灵图，将原版矩形紫边提示框重构为具有抗锯齿圆角、深色微透与菲涅尔高光的流体毛玻璃面板（Layer 14）。
+  - 在 ReGlassConfig.Features 及 ReGlassSettingsIO 中新增 	ooltips 开关支持，并在配置界面增加对应切换按钮。
+  - 在 DrawContextMixin 中拦截并替换原版 	ooltip/background 与 	ooltip/frame 精灵图，将原版矩形紫边提示框重构为具有抗锯齿圆角、深色微透与菲涅尔高光的流体毛玻璃面板（Layer 14）。
 - **Tooltip 不透明度调节与配置界面全汉化（双语支持）**：
-  - 新增 `tooltipOpacity` 提示框不透明度配置与滑动条（0.0 ~ 1.0），可随心调节深浅以确保提示文字清晰可见。
-  - 在 `DrawContextMixin` 中动态链接 `tooltipOpacity` 渲染背景。
-  - 重构 `ReGlassConfigScreen` 与 `MappedSlider`，为所有分类、开关按钮与滑动调节项增加语言键，提供完整的简体中文（`zh_cn.json`）与英文（`en_us.json`）本地化。
+  - 新增 	ooltipOpacity 提示框不透明度配置与滑动条（0.0 ~ 1.0），可随心调节深浅以确保提示文字清晰可见。
+  - 在 DrawContextMixin 中动态链接 	ooltipOpacity 渲染背景。
+  - 重构 ReGlassConfigScreen 与 MappedSlider，为所有分类、开关按钮与滑动调节项增加语言键，提供完整的简体中文（zh_cn.json）与英文（n_us.json）本地化。
 
 > 以下是原README：
 
@@ -23,39 +45,5 @@ ReGlass Is Meant To Be An API For Any Minecraft Mod.
 - Highly Optimized, Almost Vanilla Performance (For Dedicated GPU PCs).
 - Some Minecraft UI Redesigns.
 
-### API Example:
-```java
-// Widget Based Dimensions
-int cornerRadiusPx = 0.5f * Math.min(width, height); // Recommended Rounding
-ReGlassApi.create(context).fromWidget(someWidget).cornerRadius(cornerRadiusPx).render();
-
-// Custom Style 
-customStyle = WidgetStyle.create()
-        .tint(Formatting.GOLD.getColorValue(), 0.4f)
-        .blurRadius(0).shadow(25f, 0.2f, 0f, 3f)
-        .smoothing(.05f).shadowColor(0x000000, 1.0f);
-
-// Static Based Rendering E.g. Called From Screen `render()`.
-ReGlassApi.create(context).dimensions(10, 10, 100, 100).cornerRadius(cornerRadiusPx).style(customStyle).render();
-
-// You Must Apply Blur
-LiquidGlassUniforms.get().tryApplyBlur(context);
-
-
-// Ready To Use Widget (Screen Usage Example):
-boolean moveable = true; // Makes The Widget Draggable
-addDrawableChild(new LiquidGlassWidget(width / 2 - 75, height / 2 - 25, 150, 50, null).setMoveable(moveable));
-```
-
-### Keybinds:
-- ReGlass keybinds are unbound by default and can be changed in Minecraft's Controls screen.
-
 ### Building:
-- `./gradlew :26.1:runClient` runs the current 26.1 Fabric target.
-- `./gradlew buildAll` builds every configured Stonecutter target.
-
-## Contributing Is More Than Welcome!
-Especially In The Minecraft UI Redesign Part, This Part Is Highly WIP And Needs a Lot of Work.
-
-<img width="426" height="251" alt="Sun Set" src="https://github.com/user-attachments/assets/8231c19b-abea-42b2-807f-35c3f089d3c0" />
-
+- ./gradlew build builds the 26.3 Fabric target.

@@ -1,12 +1,11 @@
 package restudio.reglass.client;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.PrimitiveTopology;
-import com.mojang.blaze3d.pipeline.BindGroupLayout;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
+import com.mojang.renderpearl.api.pipeline.ColorTargetState;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.blaze3d.shaders.UniformType;
+import com.mojang.renderpearl.api.pipeline.UniformType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.resources.Identifier;
 
@@ -29,12 +28,12 @@ public final class LiquidGlassPipelines {
                                     .withUniform("CustomUniforms", UniformType.UNIFORM_BUFFER)
                                     .withUniform("WidgetInfo", UniformType.UNIFORM_BUFFER)
                                     .withUniform("BgConfig", UniformType.UNIFORM_BUFFER)
-                                    .withSampler("Sampler0")
-                                    .withSampler("Sampler1")
-                                    .withSampler("Sampler2")
-                                    .withSampler("Sampler3")
-                                    .withSampler("Sampler4")
-                                    .withSampler("Sampler5")
+                                    .withUniform("Sampler0", UniformType.COMBINED_IMAGE_SAMPLER)
+                                    .withUniform("Sampler1", UniformType.COMBINED_IMAGE_SAMPLER)
+                                    .withUniform("Sampler2", UniformType.COMBINED_IMAGE_SAMPLER)
+                                    .withUniform("Sampler3", UniformType.COMBINED_IMAGE_SAMPLER)
+                                    .withUniform("Sampler4", UniformType.COMBINED_IMAGE_SAMPLER)
+                                    .withUniform("Sampler5", UniformType.COMBINED_IMAGE_SAMPLER)
                                     .build()
                     )
                     .withVertexBinding(0, DefaultVertexFormat.POSITION)
@@ -44,7 +43,6 @@ public final class LiquidGlassPipelines {
                     .withColorTargetState(ColorTargetState.DEFAULT);
 
             LIQUID_GLASS_GUI = b.build();
-            RenderSystem.getDevice().precompilePipeline(LIQUID_GLASS_GUI);
         }
         return LIQUID_GLASS_GUI;
     }

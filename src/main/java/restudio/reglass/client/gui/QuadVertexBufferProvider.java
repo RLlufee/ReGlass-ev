@@ -1,6 +1,6 @@
 package restudio.reglass.client.gui;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
 
 public interface QuadVertexBufferProvider {
     GpuBuffer getQuadVertexBuffer();

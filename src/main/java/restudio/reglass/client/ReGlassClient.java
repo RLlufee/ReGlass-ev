@@ -11,7 +11,7 @@ import net.minecraft.client.gui.components.Button;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
+
 import restudio.reglass.client.api.ReGlassConfig;
 import restudio.reglass.client.api.WidgetStyle;
 import restudio.reglass.client.config.ReGlassSettingsIO;
@@ -84,9 +84,13 @@ public class ReGlassClient implements ClientModInitializer {
         }
         InputConstants.Key key = InputConstants.getKey(keyMapping.saveString());
         if (key.getType() == InputConstants.Type.MOUSE) {
-            return GLFW.glfwGetMouseButton(client.getWindow().handle(), key.getValue()) == GLFW.GLFW_PRESS;
+            int btn = key.getValue();
+            if (btn == 0) return client.mouseHandler.isLeftPressed();
+            if (btn == 1) return client.mouseHandler.isRightPressed();
+            if (btn == 2) return client.mouseHandler.isMiddlePressed();
+            return false;
         }
-        return InputConstants.isKeyDown(client.getWindow(), key.getValue());
+        return InputConstants.isKeyDown(key.getValue());
     }
 
     public static class PlaygroundScreen extends Screen {

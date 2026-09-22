@@ -1,4 +1,5 @@
-#version 150
+#version 330
+#extension GL_ARB_separate_shader_objects : require
 uniform sampler2D Sampler0;
 uniform sampler2D Sampler1;
 uniform sampler2D Sampler2;
@@ -51,7 +52,7 @@ layout(std140) uniform BgConfig {
     vec2 ShadowOffset;
 };
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 struct SDFResult { float dist; vec2 normal; float aspect; int index; };
 

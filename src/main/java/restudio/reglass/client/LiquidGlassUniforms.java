@@ -1,6 +1,6 @@
 package restudio.reglass.client;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.buffers.Std140SizeCalculator;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -14,7 +14,7 @@ import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.util.ARGB;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.glfw.GLFW;
+
 import restudio.reglass.client.api.ReGlassConfig;
 import restudio.reglass.client.api.WidgetStyle;
 import restudio.reglass.client.gui.LiquidGlassGuiElementRenderState;
@@ -106,21 +106,21 @@ public final class LiquidGlassUniforms {
             b.putVec2((float) outW, (float) outH);
         }
 
-        double[] mx = new double[1];
-        double[] my = new double[1];
-        GLFW.glfwGetCursorPos(mc.getWindow().handle(), mx, my);
+        double mouseX = mc.mouseHandler.xpos();
+        double mouseY = mc.mouseHandler.ypos();
+
         float scale = (float) mc.getWindow().getGuiScale();
         int fbH = mc.gameRenderer.mainRenderTarget().height;
 
-        float time = (float) GLFW.glfwGetTime();
+        float time = (float) (System.nanoTime() * 1e-9);
         ReGlassConfig config = ReGlassConfig.INSTANCE;
 
         try (var map = customUniforms.map(false, true)) {
             Std140Builder b = Std140Builder.intoBuffer(map.data());
             b.putFloat(time);
             b.align(16);
-            float x = (float) (mx[0] * scale);
-            float y = fbH - (float) (my[0] * scale);
+            float x = (float) (mouseX * scale);
+            float y = fbH - (float) (mouseY * scale);
             b.putVec4(new Vector4f(x, y, 0f, 0f));
             b.putFloat(this.screenWantsBlur ? 1.0f : 0.0f);
             b.align(16);

@@ -53,7 +53,7 @@ public class ScrollableListWidget<E extends ScrollableListWidget.Entry<E>> exten
     }
 
     public void setSelected(E entry) {
-        if (!InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), InputConstants.KEY_LCONTROL)) {
+        if (!InputConstants.isKeyDown(InputConstants.KEY_LCONTROL)) {
             this.selectedEntries.clear();
         }
 

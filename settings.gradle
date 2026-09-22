@@ -9,4 +9,4 @@ pluginManagement {
 	}
 }
 
-rootProject.name = 'reglass-26.2-ev'
+rootProject.name = 'reglass-26.3-ev'
