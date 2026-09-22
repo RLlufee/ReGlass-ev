@@ -1,22 +1,6 @@
 ## 本版本（26.3-ev）移植与修改日志：
 - **着色器 SPIR-V 语法规范化修复（解决客户端崩溃）**：
   - 修复 Minecraft 26.3 RenderPearl 渲染引擎在将 GLSL 编译为 SPIR-V 字节码时的编译报错（'location' : SPIR-V requires location for user input/output）。
-  - 为 lit_fullscreen.vsh、lur.fsh、liquid_glass_gui.fsh、g.fsh、loom.fsh 全部补齐 #version 330、#extension GL_ARB_separate_shader_objects : require 以及 layout(location = 0) 输入/输出变量显式修饰符，确保在 Vulkan/OpenGL 下顺利通过 SPIR-V 语法校验与管线构建。
-- **完整移植至 Minecraft 26.3 (Fabric)**：
-  - **渲染后端 RenderPearl 全新架构适配**：
-    - 适配 Mojang 26.3 全新 com.mojang.renderpearl 抽象层，将所有管线、着色器描述符、缓冲区与渲染通路迁移至 RenderPearl API。
-    - 适配 RenderPipeline, PrimitiveTopology, UniformType, BindGroupLayout, ColorTargetState。
-    - 将 RenderPass 的纹理与缓冲绑定统一迁移为 setUniform，适配 CompiledRenderPipeline 编译调度。
-    - 适配 GpuBuffer、GpuBufferSlice 与 AutoStorageIndexBuffer，解决缓冲区生命周期管理与切片传递。
-    - 适配 RenderTarget.hasDepth() 及纹理视图获取逻辑。
-  - **窗口与平台抽象迁移（SDL 适配）**：
-    - 移除对 GLFW 静态类的直接依赖，鼠标位置改由 Minecraft.mouseHandler 获取，时间基准使用纳秒级时间源，全局按键与鼠标点击判断完全适配 26.3 的 InputConstants.isKeyDown(key)。
-  - **GuiGraphicsExtractor 渲染拦截**：
-    - 将 DrawContextMixin 中的 lit 与 litSprite 拦截切面全量对齐至 26.3 的 com.mojang.renderpearl.api.pipeline.RenderPipeline 描述符。
-  - **继承 26.2-ev 全部扩展特性**：
-    - 完整保留 Tooltip 悬浮提示框毛玻璃化（Layer 14）。
-    - 完整保留 	ooltipOpacity 不透明度调节滑动条与配置持久化。
-    - 完整保留配置界面全汉化与双语支持（zh_cn.json / n_us.json）。
 
 ---
 
