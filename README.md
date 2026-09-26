@@ -7,6 +7,8 @@
   - 在 `DrawContextMixin` 中动态链接 `tooltipOpacity` 渲染背景。
   - 重构 `ReGlassConfigScreen` 与 `MappedSlider`，为所有分类、开关按钮与滑动调节项增加语言键，提供完整的简体中文（`zh_cn.json`）与英文（`en_us.json`）本地化。
 
+> build 过不去的记得去Gradle项目社会治理将我的那个Java路径删掉嗷
+
 > 以下是原README：
 
 # ReGlass By ReStudio
