@@ -1,3 +1,7 @@
+# ⚠️⚠️由于官方已出本分支的版本，此分支不再有更新⚠️⚠️
+
+> 请谅解
+
 ## 本fork修改：（仅修改26.2）
 - **Tooltip 悬浮提示框毛玻璃化（26.2 支持）**：
   - 在 `ReGlassConfig.Features` 及 `ReGlassSettingsIO` 中新增 `tooltips` 开关支持，并在配置界面增加对应切换按钮。
